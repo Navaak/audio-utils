@@ -15,11 +15,11 @@ Analyzes all audio files found (recursively) in a folder using MusicExtractor.
     parser.add_argument('-d', '--dir', help='input directory', required=True)
     parser.add_argument('-db', '--db', help='mongo db uri', required=True)
     parser.add_argument('-nvk_token', '--nvk_token', help='navaak app token',
-                        required=True)
+                        required=False)
     parser.add_argument('-pio_token', '--pio_token', help='pio token',
-                        required=True)
+                        required=False)
     parser.add_argument('-mode', '--mode',
-                        help='analyzer scan mode [scan, watch]',
+                        help='analyzer scan mode [scan, watch, push_pio]',
                         required=False)
     parser.add_argument(
         '-t', '--type', nargs='+',
@@ -32,5 +32,7 @@ Analyzes all audio files found (recursively) in a folder using MusicExtractor.
 
     if args.mode == 'scan':
         analyzer.scan(args.type)
+    elif args.mode == 'push_pio':
+        analyzer.push_pio_all()
     else:
         analyzer.watch()

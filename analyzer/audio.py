@@ -68,7 +68,6 @@ class Analyze(object):
         self.db.pool_stats.insert(stats)
 
         track = self.get_track(idstr)
-        self.db.track.insert(track)
         self.push_pio(track, stats)
 
 
@@ -100,6 +99,13 @@ class Analyze(object):
         req = requests.post(url, headers=headers, json=data)
         print req.status_code
 
+
+
+    def push_pio_all(self):
+        pool_stats = self.pool_stats.find({})
+        for pool_stat in pool_stats:
+            track = self.get_track(str(pool_stat.ref_id))
+            self.push_pio(track, pool_stat)
 
 
     def watch(self):
