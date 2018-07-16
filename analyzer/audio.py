@@ -141,6 +141,16 @@ class Analyze(object):
 
         observer.join()
 
+    def analyzed(self, filename):
+        base = os.path.basename(filename)
+        idstr = base.split(".")[0]
+        id = ObjectId(idstr)
+        stat = self.db.pool_stats.find_one({"ref_id": id})
+        if not stat:
+            return False
+        track = self.get_track(idstr)
+        self.push_pio(track, stat)
+        return True
 
 
     def scan(self, audio_types=None):
@@ -156,20 +166,17 @@ class Analyze(object):
 
         # find all audio files
         os.chdir(self.audio_dir)
-        audio_files = []
+
         for root, dirnames, filenames in os.walk("."):
             for match in audio_types:
                 for filename in fnmatch.filter(filenames, match):
-                    audio_files.append(os.path.relpath(
-                        os.path.join(root, filename)))
-
-        # analyze
-        errors = 0
-        results = {}
-        for audio_file in audio_files:
-            err = self.analyze_file(audio_file)
-            if err:
-                errors += 1
+                    audio_file = os.path.relpath(os.path.join(root, filename))
+                    if self.analyzed(audio_file):
+                        print filename, " already analyzed"
+                        continue
+                    err = self.analyze_file(audio_file)
+                    if err:
+                        errors += 1
 
         print
         print "Analysis done.", errors, "files have been skipped due to errors"
