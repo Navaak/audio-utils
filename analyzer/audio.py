@@ -15,7 +15,7 @@ from watchdog.events import FileSystemEventHandler
 
 class Analyze(object):
 
-    POI_BASE_URL = "http://"
+    POI_BASE_URL = "http://127.0.0.1:7070/"
     NVK_BASE_URL = "http://navaak.com/pio/"
 
     def __init__(self, dburi, audio_dir, nvk_token=None, pio_token=None):
@@ -73,39 +73,52 @@ class Analyze(object):
 
     def get_track(self, idstr):
         url = self.NVK_BASE_URL + "tracks/" + idstr
+
         headers = {'auth': self.nvk_token}
         req = requests.get(url, headers=headers)
+        if req.status_code != 200:
+            raise BaseException("navaak request err " + req.text)
+
         track = json.loads(req.text)
-        del(track._id)
-        track["ref_id"] = idstr
+
         return track
 
 
     def push_pio(self, track, stats):
-        url = self.POI_BASE_URL + "/events.json?accessKey=" + self.pio_token
+        url = self.POI_BASE_URL + "events.json?accessKey=" + self.pio_token
         headers = {"Content-Type": "application/json"}
-        del(stats.ref_id)
+        del(stats["ref_id"])
+        if "_id" in stats:
+            del(stats["_id"])
+
         track["properties"] = stats
+
+        id = str(track["_id"])
+        del(track["_id"])
 
         data = {
             "event" : "$set",
             "entityType" : "track",
-            "entityId" : track.ref_id,
-            "properties" : {
-                track
-            }
+            "entityId" : id,
+            "properties" : track
         }
 
         req = requests.post(url, headers=headers, json=data)
+        print req.text
         print req.status_code
 
 
 
     def push_pio_all(self):
-        pool_stats = self.pool_stats.find({})
+        pool_stats = self.db.pool_stats.find({})
         for pool_stat in pool_stats:
-            track = self.get_track(str(pool_stat.ref_id))
-            self.push_pio(track, pool_stat)
+            if "ref_id" not in pool_stat:
+                continue
+            try:
+                track = self.get_track(str(pool_stat["ref_id"]))
+                self.push_pio(track, pool_stat)
+            except BaseException, e:
+                print e
 
 
     def watch(self):
@@ -173,6 +186,12 @@ class Analyze(object):
 
         stats = self.pool_to_dict(poolStats)
         frames = self.pool_to_dict(poolFrames)
+
+        ### f = open("/home/ehsan/Music/stats.json", "w")
+        ### f.write(json.dumps(stats))
+        ### f.close()
+
+
         try:
             self.save(audio_file, stats, frames)
         except Exception, e:

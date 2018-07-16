@@ -61,5 +61,6 @@ log/
 # vim
 *.swp
 *.pyc
+*.json
 
 src/payment-handler-master
