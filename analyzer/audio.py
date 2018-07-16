@@ -171,6 +171,8 @@ class Analyze(object):
         # find all audio files
         os.chdir(self.audio_dir)
 
+        errors = 0
+
         for root, dirnames, filenames in os.walk("."):
             for match in audio_types:
                 for filename in fnmatch.filter(filenames, match):
