@@ -148,8 +148,12 @@ class Analyze(object):
         stat = self.db.pool_stats.find_one({"ref_id": id})
         if not stat:
             return False
-        track = self.get_track(idstr)
-        self.push_pio(track, stat)
+        try:
+            track = self.get_track(idstr)
+            self.push_pio(track, stat)
+        except BaseException:
+            pass
+
         return True
 
 
