@@ -67,8 +67,12 @@ class Analyze(object):
         frames["ref_id"] = id
         self.db.pool_stats.insert(stats)
 
-        track = self.get_track(idstr)
-        self.push_pio(track, stats)
+        try:
+            track = self.get_track(idstr)
+            self.push_pio(track, stats)
+        except Exception, e:
+            print e
+
 
 
     def get_track(self, idstr):
@@ -77,7 +81,7 @@ class Analyze(object):
         headers = {'auth': self.nvk_token}
         req = requests.get(url, headers=headers)
         if req.status_code != 200:
-            raise BaseException("navaak request err " + req.text)
+            raise Exception("navaak request err " + req.text)
 
         track = json.loads(req.text)
 
@@ -117,7 +121,7 @@ class Analyze(object):
             try:
                 track = self.get_track(str(pool_stat["ref_id"]))
                 self.push_pio(track, pool_stat)
-            except BaseException, e:
+            except Exception, e:
                 print e
 
 
@@ -151,8 +155,8 @@ class Analyze(object):
         try:
             track = self.get_track(idstr)
             self.push_pio(track, stat)
-        except BaseException:
-            pass
+        except Exception as e:
+            print e
 
         return True
 
