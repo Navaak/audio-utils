@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     db = MongoClient().navaak
 
-    url = POI_BASE_URL + "events.json?accessKey=" + args.token
+    url = POI_BASE_URL + "batch/events.json?accessKey=" + args.token
     headers = {"Content-Type": "application/json"}
 
     users = db.users.find({})
