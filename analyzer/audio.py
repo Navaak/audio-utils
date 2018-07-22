@@ -108,8 +108,8 @@ class Analyze(object):
         }
 
         req = requests.post(url, headers=headers, json=data)
-        print req.text
-        print req.status_code
+        print req.status_code, req.text
+        print
 
 
 
