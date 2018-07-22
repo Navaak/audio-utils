@@ -37,7 +37,7 @@ if __name__ == '__main__':
             }
         })
 
-        if len(data) >= 500:
+        if len(data) >= 50:
             req = requests.post(url, headers=headers, json=data)
             print req.status_code, req.text
             print
