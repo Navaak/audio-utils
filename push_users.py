@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
         data.append({
             "event": "$set",
-            "entity": "user",
+            "entityType": "user",
             "entityId": str(user["_id"]),
             "properties": {
                 "gender": user["profile"]["gender"]
