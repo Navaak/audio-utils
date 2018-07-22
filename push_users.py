@@ -24,16 +24,17 @@ if __name__ == '__main__':
 
     users = db.users.find({})
     data = []
-
     for user in users:
-
+        gender = ""
+        if "gender" in user["profile"]:
+            gender = user["profile"]["gender"]
 
         data.append({
             "event": "$set",
             "entityType": "user",
             "entityId": str(user["_id"]),
             "properties": {
-                "gender": user["profile"]["gender"]
+                "gender": gender
             }
         })
 
