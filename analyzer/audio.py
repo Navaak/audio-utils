@@ -103,6 +103,9 @@ class Analyze(object):
         id = str(track["_id"])
 
         data.pop("_id", None)
+        data["rhythm"].pop("beats_loudness_band_ratio", None)
+        data["rhythm"].pop("beats_position", None)
+        data["rhythm"].pop("bpm_histogram", None)
 
         body = {
             "event" : "$set",
