@@ -91,23 +91,27 @@ class Analyze(object):
     def push_pio(self, track, stats):
         url = self.POI_BASE_URL + "events.json?accessKey=" + self.pio_token
         headers = {"Content-Type": "application/json"}
-        del(stats["ref_id"])
-        if "_id" in stats:
-            del(stats["_id"])
 
-        track["properties"] = stats
+        stats.pop("ref_id", None)
+        stats.pop("_id", None)
+        stats.pop("meta_data", None)
+
+        data = track.copy()
+
+        data.update(stats)
 
         id = str(track["_id"])
-        del(track["_id"])
 
-        data = {
+        data.pop("_id", None)
+
+        body = {
             "event" : "$set",
             "entityType" : "track",
             "entityId" : id,
-            "properties" : track
+            "properties" : data
         }
 
-        req = requests.post(url, headers=headers, json=data)
+        req = requests.post(url, headers=headers, json=body)
         print req.status_code, req.text
         print
 
