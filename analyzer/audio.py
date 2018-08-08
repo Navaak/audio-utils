@@ -67,12 +67,6 @@ class Analyze(object):
         frames["ref_id"] = id
         self.db.pool_stats.insert(stats)
 
-        try:
-            track = self.get_track(idstr)
-            self.push_pio(track, stats)
-        except Exception, e:
-            print e
-
 
 
     def get_track(self, idstr):
@@ -88,48 +82,6 @@ class Analyze(object):
         return track
 
 
-    def push_pio(self, track, stats):
-        url = self.POI_BASE_URL + "events.json?accessKey=" + self.pio_token
-        headers = {"Content-Type": "application/json"}
-
-        stats.pop("ref_id", None)
-        stats.pop("_id", None)
-        stats.pop("meta_data", None)
-
-        data = track.copy()
-
-        data.update(stats)
-
-        id = str(track["_id"])
-
-        data.pop("_id", None)
-        data["rhythm"].pop("beats_loudness_band_ratio", None)
-        data["rhythm"].pop("beats_position", None)
-        data["rhythm"].pop("bpm_histogram", None)
-
-        body = {
-            "event" : "$set",
-            "entityType" : "track",
-            "entityId" : id,
-            "properties" : data
-        }
-
-        req = requests.post(url, headers=headers, json=body)
-        print req.status_code, req.text
-        print
-
-
-
-    def push_pio_all(self):
-        pool_stats = self.db.pool_stats.find({})
-        for pool_stat in pool_stats:
-            if "ref_id" not in pool_stat:
-                continue
-            try:
-                track = self.get_track(str(pool_stat["ref_id"]))
-                self.push_pio(track, pool_stat)
-            except Exception, e:
-                print e
 
 
     def watch(self):
@@ -159,11 +111,6 @@ class Analyze(object):
         stat = self.db.pool_stats.find_one({"ref_id": id})
         if not stat:
             return False
-        try:
-            track = self.get_track(idstr)
-            self.push_pio(track, stat)
-        except Exception as e:
-            print e
 
         return True
 

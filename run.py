@@ -52,7 +52,5 @@ Analyzes all audio files found (recursively) in a folder using MusicExtractor.
 
     if args.mode == 'scan':
         analyzer.scan(args.type)
-    elif args.mode == 'push_pio':
-        analyzer.push_pio_all()
     else:
         analyzer.watch()
