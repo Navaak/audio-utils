@@ -87,6 +87,7 @@ class Analyze(object):
 
     def watch(self):
         analyze_file = self.analyze_file
+        audio_types = ['*.mp3']
 
         class WatchHandler(FileSystemEventHandler):
             def on_created(self, event):
@@ -94,7 +95,10 @@ class Analyze(object):
                                            shell=True, stdout=subprocess.PIPE)
                 process.wait()
                 for root, dirnames, filenames in os.walk(event.src_path):
-                    analyze_file(filenames)
+                    for match in audio_types:
+                        for filename in fnmatch.filter(filenames, match):
+                            audio_file = os.path.relpath(os.path.join(root, filename))
+                            analyze_file(filenames)
 
 
         observer = Observer()
