@@ -5,6 +5,7 @@ import fnmatch
 import sys
 import time
 import requests
+import subprocess
 
 from essentia.standard import MusicExtractor, YamlOutput
 from essentia import Pool
@@ -89,7 +90,11 @@ class Analyze(object):
 
         class WatchHandler(FileSystemEventHandler):
             def on_created(self, event):
-                analyze_file(event.src_path)
+                process = subprocess.Popen("sync %s" % event.src_path,
+                                           shell=True, stdout=subprocess.PIPE)
+                process.wait()
+                for root, dirnames, filenames in os.walk(event.src_path):
+                    analyze_file(filenames)
 
 
         observer = Observer()
