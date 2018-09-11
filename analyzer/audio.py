@@ -6,6 +6,7 @@ import sys
 import time
 import requests
 import subprocess
+import thread
 
 from essentia.standard import MusicExtractor, YamlOutput
 from essentia import Pool
@@ -14,16 +15,20 @@ from bson.objectid import ObjectId
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+
+
 class Analyze(object):
 
     POI_BASE_URL = "http://127.0.0.1:7070/"
     NVK_BASE_URL = "http://navaak.com/pio/"
+    QUEE = {}
 
     def __init__(self, dburi, audio_dir, nvk_token=None, pio_token=None):
         self.nvk_token = nvk_token
         self.pio_token = pio_token
         self.audio_dir = audio_dir
         self.db = MongoClient(dburi).audio_analyze
+        thread.start_new_thread(self.checkQuee, (None,))
 
     @classmethod
     def isMatch(name, patterns):
@@ -83,22 +88,40 @@ class Analyze(object):
         return track
 
 
+    def checkQuee(self, *args):
+        audio_types = ['*.mp3']
+        while True:
+            for path in self.QUEE:
+                print "checking path ----> ", path
+                # walking
+                for root, dirnames, filenames in os.walk(path):
+                    # checking types
+                    for match in audio_types:
+                        for filename in fnmatch.filter(filenames, match):
+                            audio_file = os.path.relpath(
+                                os.path.join(root, filename))
+                            if self.analyzed(audio_file):
+                                print filename, " already analyzed"
+                                continue
+                            print self.analyze_file(audio_file)
+
+                self.QUEE[path] += 1
+
+                # delete after ~10 minute
+                if self.QUEE[path] > 10:
+                    del self.QUEE[path]
+
+            time.sleep(60)
+
 
 
     def watch(self):
         analyze_file = self.analyze_file
-        audio_types = ['*.mp3']
+        upperClass = self
 
         class WatchHandler(FileSystemEventHandler):
             def on_created(self, event):
-                process = subprocess.Popen("sync %s" % event.src_path,
-                                           shell=True, stdout=subprocess.PIPE)
-                process.wait()
-                for root, dirnames, filenames in os.walk(event.src_path):
-                    for match in audio_types:
-                        for filename in fnmatch.filter(filenames, match):
-                            audio_file = os.path.relpath(os.path.join(root, filename))
-                            analyze_file(filenames)
+                upperClass.QUEE[event.src_path] = 0
 
 
         observer = Observer()
